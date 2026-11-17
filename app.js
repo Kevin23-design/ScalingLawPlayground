@@ -300,7 +300,7 @@
   // ---------------------------------------------------------------- state
   const DEFAULTS = { gt: "epoch", region: "all", prec: 4, bias: 0, rn: 1, seed: 0, target: 15, boot: false, custom: null };
   let state = { ...DEFAULTS, custom: new Set(POINTS.map(p => p.idx)) };
-  let lang = (navigator.language || "en").toLowerCase().startsWith("zh") ? "zh" : "en";
+  let lang = "en";
   try { const l = localStorage.getItem("slp-lang"); if (l === "en" || l === "zh") lang = l; } catch (e) {}
   const T = () => I18N[lang];
 
