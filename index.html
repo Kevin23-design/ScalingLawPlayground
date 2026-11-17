@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scaling Law Playground</title>
+  <meta name="description" content="Interactive playground showing how fragile Chinchilla-style scaling-law fits are to fit region, loss precision and small biases." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232a78d6'/><path d='M6 8 C10 20 16 24 26 25' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
+        <span data-i18n="brand">Scaling Law Playground</span>
+      </div>
+      <nav class="top-actions">
+        <button id="lang-btn" class="ghost" type="button" aria-label="Switch language">中文</button>
+        <button id="theme-btn" class="ghost" type="button" aria-label="Toggle theme">◐</button>
+        <a class="ghost" href="https://github.com/Kevin23-design/ScalingLawPlayground" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1 data-i18n="title">Scaling-law fitting playground</h1>
+      <p class="lede" data-i18n-html="lede">
+        Fit <code>L̂(N,D) = E + A·N<sup>−α</sup> + B·D<sup>−β</sup></code> on synthetic "training runs",
+        then extrapolate orders of magnitude further. Tiny procedural choices — which models you fit on,
+        how you round the loss, a milli-loss bias — can move the predicted compute-optimal allocation a lot.
+      </p>
+      <div class="truth">
+        <label for="gt" data-i18n="gtLabel">Ground truth</label>
+        <select id="gt"></select>
+        <code id="gt-formula"></code>
+      </div>
+    </section>
+
+    <section class="scenarios" aria-label="Scenarios">
+      <span class="scen-label" data-i18n="tryLabel">Try a scenario:</span>
+      <div id="scenario-list" class="chips"></div>
+    </section>
+
+    <section class="card main-card">
+      <div class="grid">
+        <div class="plot-col">
+          <div class="plot-head">
+            <h2 data-i18n="plot1Title">Loss along the compute-optimal frontier</h2>
+            <div class="legend" id="legend1"></div>
+          </div>
+          <div class="plot-wrap" id="plot1-wrap">
+            <svg id="plot1" viewBox="0 0 760 400" role="img" aria-label="Loss versus model size"></svg>
+            <div class="tooltip" id="tip" hidden></div>
+          </div>
+          <p class="hint" data-i18n="hint1">Hover a point for details · click a point to include/exclude it (switches to Custom region).</p>
+        </div>
+
+        <aside class="controls">
+          <div class="control">
+            <label for="region"><span data-i18n="region">Fit region</span></label>
+            <select id="region">
+              <option value="small" data-i18n="regSmall">Small models only (≤1B)</option>
+              <option value="medium" data-i18n="regMedium">Medium models only (0.7B–7B)</option>
+              <option value="large" data-i18n="regLarge">Large models only (≥3B)</option>
+              <option value="all" data-i18n="regAll">All measured models</option>
+              <option value="custom" data-i18n="regCustom">Custom (click points)</option>
+            </select>
+            <small data-i18n="regionHelp">Changing the fitted scale range changes the apparent exponents.</small>
+          </div>
+
+          <div class="control">
+            <label for="prec"><span data-i18n="prec">Loss precision</span><output id="prec-v"></output></label>
+            <input id="prec" type="range" min="0" max="4" step="1" value="4" />
+            <small data-i18n="precHelp">Round observed losses before fitting.</small>
+          </div>
+
+          <div class="control">
+            <label for="bias"><span data-i18n="bias">Correlated bias</span><output id="bias-v"></output></label>
+            <input id="bias" type="range" min="-200" max="200" step="5" value="0" />
+            <small data-i18n="biasHelp">A smooth loss-estimation bias (in milli-loss) across the (N, D) grid.</small>
+          </div>
+
+          <div class="control">
+            <label for="rn"><span data-i18n="rn">Run-to-run noise</span><output id="rn-v"></output></label>
+            <input id="rn" type="range" min="0" max="3" step="0.25" value="1" />
+            <div class="row">
+              <small id="seed-label"></small>
+              <button id="reseed" class="mini" type="button" data-i18n="reseed">↻ Reseed</button>
+            </div>
+          </div>
+
+          <div class="control">
+            <label for="target"><span data-i18n="target">Extrapolate to</span><output id="target-v"></output></label>
+            <input id="target" type="range" min="11" max="15" step="0.5" value="15" />
+            <small data-i18n="targetHelp">Evaluated at the true compute-optimal D for that N.</small>
+          </div>
+
+          <div class="control switch">
+            <label class="check"><input id="boot" type="checkbox" /> <span data-i18n="boot">Bootstrap 90% interval (200 resamples)</span></label>
+          </div>
+
+          <div class="btn-row">
+            <button id="reset" class="mini" type="button" data-i18n="reset">Reset</button>
+            <button id="share" class="mini" type="button" data-i18n="share">Copy share link</button>
+            <button id="csv" class="mini" type="button" data-i18n="csv">Export CSV</button>
+          </div>
+        </aside>
+      </div>
+
+      <div class="readout" id="readout"></div>
+      <div class="status" id="status" role="status"></div>
+    </section>
+
+    <section class="card">
+      <div class="plot-head">
+        <h2 data-i18n="plot2Title">Implied compute-optimal model size</h2>
+        <div class="legend" id="legend2"></div>
+      </div>
+      <p class="sub" data-i18n-html="plot2Sub">
+        From the fit, <code>N<sub>opt</sub>(C) = G·(C/6)<sup>β/(α+β)</sup></code> with <code>G = (αA / βB)<sup>1/(α+β)</sup></code>.
+        A few-thousandths error in α or β becomes a large multiplicative error at frontier compute.
+      </p>
+      <div class="plot-wrap">
+        <svg id="plot2" viewBox="0 0 760 340" role="img" aria-label="Compute-optimal model size versus compute"></svg>
+      </div>
+    </section>
+
+    <section class="card">
+      <details>
+        <summary data-i18n="tableTitle">Data table (36 synthetic runs)</summary>
+        <div class="table-wrap"><table id="table"></table></div>
+      </details>
+    </section>
+
+    <section class="card prose">
+      <h2 data-i18n="aboutTitle">What is going on?</h2>
+      <div data-i18n-html="about">
+        <p>Each dot is a synthetic "training run": 9 model sizes from 100M to 70B parameters, each trained with
+        4 token budgets (D = 5N, 10N, 20N, 40N). Its loss is the ground truth plus a small deterministic run-to-run
+        perturbation, an optional smooth bias, and rounding.</p>
+        <p>The fitter minimizes squared error over <code>(E, A, B, α, β)</code>: for every candidate
+        <code>(α, β, E)</code> on a coarse-to-fine grid, <code>A</code> and <code>B</code> are solved in closed form
+        by linear least squares. The bootstrap resamples the fitted runs with replacement and refits 200 times.</p>
+        <p>Three failure modes from the original post:</p>
+        <ul>
+          <li><b>Fit region</b> — fitting only small models (as in Kaplan et al.) gives different apparent exponents than fitting a wider range.</li>
+          <li><b>Loss precision</b> — rounding losses to 2 decimals (or reporting exponents to 2 digits) visibly shifts the fit.</li>
+          <li><b>Milli-loss bias</b> — a correlated error of only ~0.05 in loss can swing the predicted N<sub>opt</sub> by multiples at 10<sup>26+</sup> FLOPs.</li>
+        </ul>
+      </div>
+      <p class="credit" data-i18n-html="credit">
+        Recreated and extended from the toy widget in Lilian Weng,
+        <a href="https://lilianweng.github.io/posts/2026-06-24-scaling-laws/" target="_blank" rel="noopener">“Scaling Laws, Carefully”</a>, Lil’Log (2026).
+        Ground-truth constants from Besiroglu et al. (2024) and Hoffmann et al. (2022).
+      </p>
+    </section>
+  </main>
+
+  <footer class="wrap foot">
+    <span>Static site · no tracking · <a href="https://lilianweng.github.io/posts/2026-06-24-scaling-laws/" target="_blank" rel="noopener">original post</a></span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
