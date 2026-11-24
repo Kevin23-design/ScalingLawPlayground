@@ -503,9 +503,9 @@
 
     const sx = samples.map(([N]) => X(log10(N)));
     parts.push(`<g clip-path="url(#c1)">`);
-    if (bLo.length) parts.push(`<path d="${bandFrom(sx, bLo.map(Y), bHi.map(Y))}" fill="var(--fit-band)"/>`);
-    parts.push(`<path d="${pathFrom(sx.map((x, i) => [x, Y(trueC[i])]))}" fill="none" stroke="var(--truth)" stroke-width="2" stroke-dasharray="6 5"/>`);
-    if (fit) parts.push(`<path d="${pathFrom(sx.map((x, i) => [x, Y(fitC[i])]))}" fill="none" stroke="var(--fit)" stroke-width="2.25"/>`);
+    if (bLo.length) parts.push(`<path data-k="band" d="${bandFrom(sx, bLo.map(Y), bHi.map(Y))}" fill="var(--fit-band)"/>`);
+    parts.push(`<path data-k="truth" d="${pathFrom(sx.map((x, i) => [x, Y(trueC[i])]))}" fill="none" stroke="var(--truth)" stroke-width="2" stroke-dasharray="6 5"/>`);
+    if (fit) parts.push(`<path data-k="fit" d="${pathFrom(sx.map((x, i) => [x, Y(fitC[i])]))}" fill="none" stroke="var(--fit)" stroke-width="2.25"/>`);
     parts.push(`</g>`);
 
     // target
@@ -513,10 +513,10 @@
     parts.push(`<line x1="${tx}" x2="${tx}" y1="${M1.t}" y2="${H1 - M1.b}" stroke="var(--target)" stroke-width="1.5" stroke-dasharray="3 4"/>`);
     if (Number.isFinite(predT)) {
       const yp = clampY(Y(predT)), yt = Y(trueT);
-      if (Math.abs(yp - yt) > 3) parts.push(`<line x1="${tx}" x2="${tx}" y1="${yp}" y2="${yt}" stroke="var(--bad)" stroke-width="3" stroke-linecap="round" opacity=".55"/>`);
-      parts.push(`<circle cx="${tx}" cy="${yp}" r="6" fill="var(--fit)" stroke="var(--surface)" stroke-width="2"><title>predicted ${predT.toFixed(4)}</title></circle>`);
+      if (Math.abs(yp - yt) > 3) parts.push(`<line x1="${tx}" x2="${tx}" y1="${yp}" y2="${yt}" stroke="var(--bad)" stroke-width="3" stroke-linecap="round" opacity=".55" data-k="errbar"/>`);
+      parts.push(`<circle data-k="pred" cx="${tx}" cy="${yp}" r="6" fill="var(--fit)" stroke="var(--surface)" stroke-width="2"><title>predicted ${predT.toFixed(4)}</title></circle>`);
     }
-    parts.push(`<circle cx="${tx}" cy="${Y(trueT)}" r="6" fill="var(--target)" stroke="var(--surface)" stroke-width="2"><title>true ${trueT.toFixed(4)}</title></circle>`);
+    parts.push(`<circle data-k="truepoint" cx="${tx}" cy="${Y(trueT)}" r="6" fill="var(--target)" stroke="var(--surface)" stroke-width="2"><title>true ${trueT.toFixed(4)}</title></circle>`);
 
     // points (held-out first so used sit on top)
     const order = POINTS.map((p, i) => i).sort((a, b) => (mask[a] ? 1 : 0) - (mask[b] ? 1 : 0));
@@ -575,20 +575,20 @@
     parts.push(`<text x="16" y="${(H2 + M2.t - M2.b) / 2}" transform="rotate(-90 16 ${(H2 + M2.t - M2.b) / 2})" text-anchor="middle" font-size="12" fill="var(--text-2)">${T().axNopt}</text>`);
     const xs = cs.map(X);
     parts.push(`<g clip-path="url(#c2)">`);
-    if (lo.length) parts.push(`<path d="${bandFrom(xs, lo.map(Y), hi.map(Y))}" fill="var(--fit-band)"/>`);
-    parts.push(`<path d="M${M2.l},${Y(0)}L${W2 - M2.r},${Y(0)}" fill="none" stroke="var(--truth)" stroke-width="2" stroke-dasharray="6 5"/>`);
-    if (fit) parts.push(`<path d="${pathFrom(xs.map((x, i) => [x, Y(fitL[i])]))}" fill="none" stroke="var(--fit)" stroke-width="2.25"/>`);
+    if (lo.length) parts.push(`<path data-k="band" d="${bandFrom(xs, lo.map(Y), hi.map(Y))}" fill="var(--fit-band)"/>`);
+    parts.push(`<path data-k="truth" d="M${M2.l},${Y(0)}L${W2 - M2.r},${Y(0)}" fill="none" stroke="var(--truth)" stroke-width="2" stroke-dasharray="6 5"/>`);
+    if (fit) parts.push(`<path data-k="fit" d="${pathFrom(xs.map((x, i) => [x, Y(fitL[i])]))}" fill="none" stroke="var(--fit)" stroke-width="2.25"/>`);
     parts.push(`</g>`);
     const tx = X(log10(targetC));
     parts.push(`<line x1="${tx}" x2="${tx}" y1="${M2.t}" y2="${H2 - M2.b}" stroke="var(--target)" stroke-width="1.5" stroke-dasharray="3 4"/>`);
-    parts.push(`<circle cx="${tx}" cy="${Y(0)}" r="6" fill="var(--target)" stroke="var(--surface)" stroke-width="2"/>`);
+    parts.push(`<circle data-k="truepoint" cx="${tx}" cy="${Y(0)}" r="6" fill="var(--target)" stroke="var(--surface)" stroke-width="2"/>`);
     if (fit) {
       const v = rel(fit)(log10(targetC));
       const yf = Math.max(M2.t, Math.min(H2 - M2.b, Y(v)));
-      parts.push(`<circle cx="${tx}" cy="${yf}" r="6" fill="var(--fit)" stroke="var(--surface)" stroke-width="2"/>`);
+      parts.push(`<circle data-k="pred" cx="${tx}" cy="${yf}" r="6" fill="var(--fit)" stroke="var(--surface)" stroke-width="2"/>`);
       const lab = `${T().lgFit}: ${(10 ** v).toFixed(2)}× · ${human(nOpt(fit, targetC))} vs ${human(nOpt(truth, targetC))}`;
       const above = v >= 0;
-      parts.push(`<text x="${tx - 10}" y="${yf + (above ? -12 : 20)}" text-anchor="end" font-size="12" font-weight="600" fill="var(--text)">${lab}</text>`);
+      parts.push(`<text x="${tx - 10}" y="${yf + (above ? -12 : 20)}" text-anchor="end" font-size="12" font-weight="600" fill="var(--text)" data-k="label">${lab}</text>`);
     }
     els.plot2.innerHTML = parts.join("");
   }
@@ -652,6 +652,7 @@
   }
 
   function render() {
+    document.dispatchEvent(new CustomEvent("slp:beforerender"));
     renderLabels();
     const R = compute();
     renderPlot1(R);
@@ -667,6 +668,7 @@
       els.status.textContent = t.fitInfo(R.nUsed, R.ms);
     }
     history.replaceState(null, "", "#" + encodeState());
+    document.dispatchEvent(new CustomEvent("slp:render", { detail: { R: last, state } }));
   }
 
   let pending = false;
@@ -718,9 +720,21 @@
     const cur = document.documentElement.dataset.theme ||
       (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     const next = cur === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
-    try { localStorage.setItem("slp-theme", next); } catch (e) {}
+    const apply = () => {
+      document.documentElement.dataset.theme = next;
+      try { localStorage.setItem("slp-theme", next); } catch (e) {}
+    };
+    if (window.slpFancy && window.slpFancy.on) window.slpFancy.themeTransition(apply, $("theme-btn"));
+    else apply();
   });
+  // expose a few hooks for fancy.js (no-op when fancy mode is off)
+  window.slpApp = {
+    applyScenario: k => { if (SCENARIOS[k]) { Object.assign(state, SCENARIOS[k], { target: 15 }); syncControls(); schedule(); } },
+    scenarioKeys: () => Object.keys(SCENARIOS),
+    toggleBoot: () => { state.boot = !state.boot; syncControls(); schedule(); },
+    reset: () => $("reset").click(),
+    rerender: () => render(),
+  };
   try { const th = localStorage.getItem("slp-theme"); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
 
   // point hover + click

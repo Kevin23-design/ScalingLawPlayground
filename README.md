@@ -21,6 +21,11 @@ Recreated and extended from the toy widget in Lilian Weng's post
 - Two ground truths: Besiroglu et al. (2024) and Hoffmann et al. (2022).
 - One-click scenarios, **shareable URLs** (state lives in the hash), CSV export, a data table.
 - English / 中文, light / dark theme, works on phones.
+- **Fancy mode** (switch in the header, or press <kbd>F</kbd>): aurora background, an interactive particle network, cursor glow and spark trail,
+  glass cards with 3D tilt and a cursor-following border light, magnetic buttons with ripples, confetti on scenarios, charts that morph smoothly between fits
+  and redraw themselves, a crosshair readout on the loss chart, count-up stat tiles, a scroll progress bar, a circular reveal on theme switch, toasts and
+  keyboard shortcuts (<kbd>1</kbd>–<kbd>6</kbd> scenarios, <kbd>B</kbd> bootstrap, <kbd>R</kbd> reset, <kbd>T</kbd> theme, <kbd>?</kbd> help).
+  Turning it off restores the plain page exactly; the choice is remembered per browser.
 
 ## How the fit works
 

@@ -7,6 +7,7 @@
   <meta name="description" content="Interactive playground showing how fragile Chinchilla-style scaling-law fits are to fit region, loss precision and small biases." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232a78d6'/><path d='M6 8 C10 20 16 24 26 25' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/></svg>" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="fancy.css" />
 </head>
 <body>
   <header class="top">
@@ -16,6 +17,7 @@
         <span data-i18n="brand">Scaling Law Playground</span>
       </div>
       <nav class="top-actions">
+        <button id="fancy-btn" class="ghost fancy-toggle" type="button" role="switch" aria-checked="false" title="Fancy mode (F)"><span class="ft-track"><span class="ft-knob"></span></span><span class="ft-label">Fancy</span></button>
         <button id="lang-btn" class="ghost" type="button" aria-label="Switch language">中文</button>
         <button id="theme-btn" class="ghost" type="button" aria-label="Toggle theme">◐</button>
         <a class="ghost" href="https://github.com/Kevin23-design/ScalingLawPlayground" target="_blank" rel="noopener">GitHub</a>
@@ -163,5 +165,6 @@
   </footer>
 
   <script src="app.js"></script>
+  <script src="fancy.js"></script>
 </body>
 </html>
